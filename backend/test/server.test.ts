@@ -149,3 +149,18 @@ test('returns dashboard summary', async () => {
   assert.strictEqual(data[0].moduleId, '1');
 });
 
+test('search returns matching modules', async () => {
+  const res = await makeRequest('/search?q=Intro', 'valid-token');
+  assert.strictEqual(res.status, 200);
+  const data = JSON.parse(res.body);
+  assert.strictEqual(data.length, 1);
+  assert.strictEqual(data[0].title, 'Intro to GBS');
+});
+
+test('search suggestions return titles', async () => {
+  const res = await makeRequest('/search/suggestions?q=Ad', 'valid-token');
+  assert.strictEqual(res.status, 200);
+  const data = JSON.parse(res.body);
+  assert.deepStrictEqual(data, ['Advanced Processes']);
+});
+
