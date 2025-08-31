@@ -4,8 +4,19 @@ This project uses Google Cloud Build to build and deploy the backend to Cloud Ru
 
 ## Environment Variables
 
+Set the following variables in your Cloud Build trigger or substitutions:
+
 - `PROJECT_ID`: Google Cloud project identifier where resources are deployed.
 - `SERVICE_NAME`: Cloud Run service name. For this project the service name is `learning-hub`.
+
+## Manual Deployment
+
+To build and deploy the backend manually run:
+
+```bash
+gcloud builds submit --config cloudbuild.yaml \
+  --substitutions _SERVICE_NAME=$SERVICE_NAME,PROJECT_ID=$PROJECT_ID
+```
 
 ## Cloud Build Trigger
 
