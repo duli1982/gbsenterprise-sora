@@ -1,13 +1,10 @@
 import { Router, Request, Response } from 'express';
 import db from '../db/firestore';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/modules', async (req: Request, res: Response) => {
-  const authHeader = req.headers['authorization'];
-  if (authHeader !== 'Bearer dev-token') {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+router.get('/modules', authenticate, async (req: Request, res: Response) => {
   try {
     const snapshot = await db.collection('modules').get();
     const modules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
