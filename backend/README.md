@@ -21,6 +21,16 @@ GOOGLE_CLIENT_SECRET=your-secret
 GOOGLE_REDIRECT_URI=http://localhost:3001/auth/callback
 ```
 
+## Authentication
+
+All protected routes expect an `Authorization` header with a Google ID token.
+For local development you can bypass the Google flow by sending the literal
+string `dev-token` as the bearer token:
+
+```
+Authorization: Bearer dev-token
+```
+
 ## Development
 
 Install dependencies and seed sample data:
@@ -30,6 +40,9 @@ npm install
 npm run seed:modules
 npm run start
 ```
+
+The `seed:modules` script inserts a few sample documents into the `modules`
+collection so the `/content/modules` endpoint returns data immediately.
 
 ## Testing
 
