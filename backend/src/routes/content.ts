@@ -1,18 +1,20 @@
 import { Router, Request, Response } from 'express';
+import db from '../db/firestore';
 
 const router = Router();
 
-const modules = [
-  { id: '1', title: 'Intro to GBS', description: 'Welcome module' },
-  { id: '2', title: 'Advanced Processes', description: 'Deep dive' }
-];
-
-router.get('/modules', (req: Request, res: Response) => {
+router.get('/modules', async (req: Request, res: Response) => {
   const authHeader = req.headers['authorization'];
   if (authHeader !== 'Bearer dev-token') {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  res.json(modules);
+  try {
+    const snapshot = await db.collection('modules').get();
+    const modules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(modules);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch modules' });
+  }
 });
 
 export default router;

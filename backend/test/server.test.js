@@ -1,6 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const http = require('http');
+const db = require('../dist/db/firestore.js').default;
+
+// Mock Firestore collection fetching
+db.collection = () => ({
+  get: async () => ({
+    docs: [
+      { id: '1', data: () => ({ title: 'Intro to GBS', description: 'Welcome module' }) },
+      { id: '2', data: () => ({ title: 'Advanced Processes', description: 'Deep dive' }) },
+    ],
+  }),
+});
+
 const app = require('../dist/index.js').default;
 
 const PORT = 4000;
