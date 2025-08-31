@@ -1,9 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const http = require('http');
-const server = require('../server');
+const app = require('../dist/index.js').default;
 
 const PORT = 4000;
+let server;
 
 function makeRequest(path, token) {
   return new Promise((resolve, reject) => {
@@ -12,11 +13,11 @@ function makeRequest(path, token) {
       port: PORT,
       path,
       method: 'GET',
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     };
     const req = http.request(options, res => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', chunk => (data += chunk));
       res.on('end', () => resolve({ status: res.statusCode, body: data }));
     });
     req.on('error', reject);
@@ -25,7 +26,8 @@ function makeRequest(path, token) {
 }
 
 test.before(async () => {
-  await new Promise(resolve => server.listen(PORT, resolve));
+  server = app.listen(PORT);
+  await new Promise(resolve => server.once('listening', resolve));
 });
 
 test.after(async () => {
