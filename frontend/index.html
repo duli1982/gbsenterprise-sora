@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Learning Hub</title>
+</head>
+<body>
+  <h1>Content Modules</h1>
+  <button id="load">Load Modules</button>
+  <ul id="modules"></ul>
+  <script>
+    document.getElementById('load').addEventListener('click', async () => {
+      const res = await fetch('http://localhost:3001/content/modules', {
+        headers: { 'Authorization': 'Bearer dev-token' }
+      });
+      const data = await res.json();
+      const list = document.getElementById('modules');
+      list.innerHTML = '';
+      data.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = `${m.title} - ${m.description}`;
+        list.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
