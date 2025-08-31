@@ -69,6 +69,11 @@ test('requires auth', async () => {
   assert.strictEqual(res.status, 401);
 });
 
+test('rejects invalid token', async () => {
+  const res = await makeRequest('/content/modules', 'invalid-token');
+  assert.strictEqual(res.status, 401);
+});
+
 test('returns modules when authorized', async () => {
   const res = await makeRequest('/content/modules', 'valid-token');
   assert.strictEqual(res.status, 200);
@@ -82,6 +87,16 @@ test('returns user profile', async () => {
   assert.strictEqual(res.status, 200);
   const data = JSON.parse(res.body);
   assert.strictEqual(data.email, 'user@example.com');
+});
+
+test('requires auth for profile', async () => {
+  const res = await makeRequest('/auth/profile');
+  assert.strictEqual(res.status, 401);
+});
+
+test('rejects profile with invalid token', async () => {
+  const res = await makeRequest('/auth/profile', 'invalid-token');
+  assert.strictEqual(res.status, 401);
 });
 
 test('login returns url', async () => {
