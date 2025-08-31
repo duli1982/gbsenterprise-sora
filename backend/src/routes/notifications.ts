@@ -7,14 +7,15 @@ import { Notification, NotificationPreferences } from '../types/notification';
 
 const router = Router();
 
-let sgMail: any;
-try {
-  sgMail = require('@sendgrid/mail');
-} catch {
-  sgMail = {
-    setApiKey: () => {},
-    send: async () => {},
-  };
+function getSendgrid() {
+  try {
+    return require('@sendgrid/mail');
+  } catch {
+    return {
+      setApiKey: () => {},
+      send: async () => {},
+    };
+  }
 }
 
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -48,6 +49,7 @@ router.post('/send', authenticate, authorize('admin'), async (req: Request, res:
     const prefDoc = await db.collection('notificationPreferences').doc(userId).get();
     const prefs: NotificationPreferences = prefDoc.exists ? (prefDoc.data() as any) : {};
     if (prefs.email !== false && process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+      const sgMail = getSendgrid();
       try {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         await sgMail.send({
