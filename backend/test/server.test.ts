@@ -1,19 +1,20 @@
-const test = require('node:test');
-const assert = require('node:assert');
-const http = require('http');
+import test from 'node:test';
+import assert from 'node:assert';
+import http from 'node:http';
 
 // Mock Google token verification
-const googleAuth = require('../dist/auth/google.js');
-googleAuth.verifyIdToken = async token => {
+import * as googleAuth from '../src/auth/google';
+(googleAuth as any).verifyIdToken = async (token: string) => {
   if (token === 'valid-token') {
-    return { sub: 'user1', email: 'user@example.com', name: 'Test User' };
+    return { sub: 'user1', email: 'user@example.com', name: 'Test User' } as any;
   }
   throw new Error('Invalid token');
 };
 
-const db = require('../dist/db/firestore.js').default;
 // Mock Firestore collection fetching
-db.collection = () => ({
+import db from '../src/db/firestore';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(db as any).collection = () => ({
   get: async () => ({
     docs: [
       { id: '1', data: () => ({ title: 'Intro to GBS', description: 'Welcome module' }) },
@@ -22,12 +23,18 @@ db.collection = () => ({
   }),
 });
 
-const app = require('../dist/index.js').default;
+// Import the Express app
+import app from '../src/index';
 
 const PORT = 4000;
-let server;
+let server: http.Server;
 
-function makeRequest(path, token, method = 'GET') {
+interface ResponseData {
+  status: number;
+  body: string;
+}
+
+function makeRequest(path: string, token?: string, method = 'GET'): Promise<ResponseData> {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'localhost',
@@ -36,11 +43,13 @@ function makeRequest(path, token, method = 'GET') {
       method,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     };
+
     const req = http.request(options, res => {
       let data = '';
       res.on('data', chunk => (data += chunk));
-      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+      res.on('end', () => resolve({ status: res.statusCode ?? 0, body: data }));
     });
+
     req.on('error', reject);
     req.end();
   });
@@ -81,3 +90,4 @@ test('login returns url', async () => {
   const data = JSON.parse(res.body);
   assert.ok(data.url);
 });
+
