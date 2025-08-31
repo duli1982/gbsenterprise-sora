@@ -23,6 +23,18 @@ import db from '../src/db/firestore';
   }),
 });
 
+// Mock BigQuery for analytics
+import bigquery from '../src/db/bigquery';
+const insertedRows: any[] = [];
+(bigquery as any).dataset = () => ({
+  table: () => ({
+    insert: async (rows: any[]) => {
+      insertedRows.push(...rows);
+    },
+  }),
+});
+(bigquery as any).query = async () => [[{ moduleId: '1', avgProgress: 50, totalEvents: '1' }]];
+
 // Import the Express app
 import app from '../src/index';
 
@@ -34,14 +46,22 @@ interface ResponseData {
   body: string;
 }
 
-function makeRequest(path: string, token?: string, method = 'GET'): Promise<ResponseData> {
+function makeRequest(path: string, token?: string, method = 'GET', body?: any): Promise<ResponseData> {
   return new Promise((resolve, reject) => {
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    let payload: string | undefined;
+    if (body) {
+      payload = JSON.stringify(body);
+      headers['Content-Type'] = 'application/json';
+      headers['Content-Length'] = Buffer.byteLength(payload).toString();
+    }
+
     const options = {
       hostname: 'localhost',
       port: PORT,
       path,
       method,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers,
     };
 
     const req = http.request(options, res => {
@@ -51,6 +71,7 @@ function makeRequest(path: string, token?: string, method = 'GET'): Promise<Resp
     });
 
     req.on('error', reject);
+    if (payload) req.write(payload);
     req.end();
   });
 }
@@ -104,5 +125,27 @@ test('login returns url', async () => {
   assert.strictEqual(res.status, 200);
   const data = JSON.parse(res.body);
   assert.ok(data.url);
+});
+
+test('records progress events', async () => {
+  insertedRows.length = 0;
+  const res = await makeRequest(
+    '/analytics/progress',
+    'valid-token',
+    'POST',
+    { moduleId: '1', progress: 80 }
+  );
+  assert.strictEqual(res.status, 201);
+  assert.strictEqual(insertedRows.length, 1);
+  assert.strictEqual(insertedRows[0].moduleId, '1');
+  assert.strictEqual(insertedRows[0].userId, 'user1');
+});
+
+test('returns dashboard summary', async () => {
+  const res = await makeRequest('/analytics/dashboard', 'valid-token');
+  assert.strictEqual(res.status, 200);
+  const data = JSON.parse(res.body);
+  assert.ok(Array.isArray(data));
+  assert.strictEqual(data[0].moduleId, '1');
 });
 
