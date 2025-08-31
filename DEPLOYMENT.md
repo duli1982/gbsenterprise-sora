@@ -8,6 +8,10 @@ Set the following variables in your Cloud Build trigger or substitutions:
 
 - `PROJECT_ID`: Google Cloud project identifier where resources are deployed.
 - `SERVICE_NAME`: Cloud Run service name. For this project the service name is `learning-hub`.
+- `GOOGLE_CLIENT_ID`: OAuth client ID used to verify incoming ID tokens.
+- `GOOGLE_CLIENT_SECRET`: Client secret paired with the OAuth client ID.
+- `GOOGLE_REDIRECT_URI`: Redirect URI configured for the OAuth client.
+- `FIREBASE_SERVICE_ACCOUNT`: JSON service account credentials for Firestore.
 
 ## Manual Deployment
 
