@@ -24,12 +24,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       return res.status(401).json({ message: 'Invalid token' });
     }
 
+    const role = ((payload as unknown as Record<string, unknown>).role as User['role']) || 'user';
     req.user = {
       id: payload.sub || '',
       email: payload.email || '',
       name: payload.name || '',
       picture: payload.picture,
-      role: (payload['role'] as User['role']) || 'user',
+      role,
     };
 
     next();

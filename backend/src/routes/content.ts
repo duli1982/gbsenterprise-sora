@@ -7,7 +7,7 @@ const router = Router();
 router.get('/modules', authenticate, async (req: Request, res: Response) => {
   try {
     const snapshot = await db.collection('modules').get();
-    const modules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const modules = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
     res.json(modules);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch modules' });
