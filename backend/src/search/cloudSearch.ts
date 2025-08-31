@@ -36,7 +36,8 @@ export async function searchModules(query: string): Promise<ModuleDoc[]> {
 export async function suggestModules(query: string): Promise<string[]> {
   await ensureIndex();
   const q = query.toLowerCase();
-  return index
+  const titles = index
     .filter(m => m.title.toLowerCase().startsWith(q))
     .map(m => m.title);
+  return Array.from(new Set(titles));
 }
