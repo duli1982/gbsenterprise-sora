@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "npm run build && node --test test/server.test.js",
+    "test": "npm run build && node --test -r ts-node/register test/server.test.ts",
     "seed:modules": "ts-node scripts/seedModules.ts"
   },
   "keywords": [],
