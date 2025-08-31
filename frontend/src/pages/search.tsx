@@ -41,7 +41,11 @@ export default function SearchPage() {
             <li
               key={s}
               className="p-2 cursor-pointer"
-              onClick={() => setQuery(s)}
+              onClick={async () => {
+                setQuery(s)
+                const data = await searchModules(s)
+                setResults(data)
+              }}
             >
               {s}
             </li>

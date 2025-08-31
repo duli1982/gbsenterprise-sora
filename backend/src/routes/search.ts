@@ -9,15 +9,25 @@ indexModulesFromFirestore().catch(err => {
 });
 
 router.get('/', authenticate, async (req: Request, res: Response) => {
-  const q = (req.query.q as string) || '';
-  const results = await searchModules(q);
-  res.json(results);
+  try {
+    const q = ((req.query.q as string) || '').trim();
+    const results = await searchModules(q);
+    res.json(results);
+  } catch (err) {
+    console.error('Search failed', err);
+    res.status(500).json({ error: 'Search failed' });
+  }
 });
 
 router.get('/suggestions', authenticate, async (req: Request, res: Response) => {
-  const q = (req.query.q as string) || '';
-  const suggestions = await suggestModules(q);
-  res.json(suggestions);
+  try {
+    const q = ((req.query.q as string) || '').trim();
+    const suggestions = await suggestModules(q);
+    res.json(suggestions);
+  } catch (err) {
+    console.error('Suggestion lookup failed', err);
+    res.status(500).json({ error: 'Suggestion lookup failed' });
+  }
 });
 
 export default router;
