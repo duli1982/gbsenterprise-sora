@@ -1,7 +1,7 @@
 steps:
   - name: gcr.io/cloud-builders/npm
     dir: backend
-    args: ['install']
+    args: ['ci']
   - name: gcr.io/cloud-builders/npm
     dir: backend
     args: ['test']
@@ -23,7 +23,11 @@ steps:
       - managed
       - --allow-unauthenticated
       - --set-env-vars
-      - GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI,FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT
+      - >-
+        GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET,
+        GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI,
+        FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT
 images:
   - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
 substitutions:

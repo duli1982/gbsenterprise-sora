@@ -4,7 +4,7 @@ This project uses Google Cloud Build to build, test, and deploy the backend to C
 
 ## Environment Variables
 
-Add the following variables when configuring the Cloud Build trigger. They are passed to the Cloud Run service during deployment:
+When configuring the Cloud Build trigger, supply the following variables. They are injected into the Cloud Run service during deployment:
 
 - `PROJECT_ID`: Google Cloud project identifier where resources are deployed.
 - `_SERVICE_NAME`: Cloud Run service name. For this project the service name is `learning-hub`.
@@ -13,6 +13,14 @@ Add the following variables when configuring the Cloud Build trigger. They are p
 - `GOOGLE_CLIENT_SECRET`: Client secret paired with the OAuth client ID.
 - `GOOGLE_REDIRECT_URI`: Redirect URI configured for the OAuth client.
 - `FIREBASE_SERVICE_ACCOUNT`: JSON service account credentials for Firestore.
+
+## Rollout Process
+
+1. Push changes to the `main` branch.
+2. Cloud Build runs `npm ci`, executes tests, builds the Docker image, and deploys it to Cloud Run.
+3. The Cloud Run service `learning-hub` creates a new revision and directs all traffic to it.
+4. Verify the deployment in the Cloud Build logs and Cloud Run console.
+5. To roll back, redeploy a previous revision using `gcloud run deploy`.
 
 ## Manual Deployment
 

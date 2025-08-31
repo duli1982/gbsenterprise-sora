@@ -1,18 +1,27 @@
-# Build stage
+# Build stage: install dependencies and compile TypeScript
 FROM node:18 AS build
 WORKDIR /app
-COPY package.json tsconfig.json ./
+
+# Install dependencies using npm ci for reproducible builds
+COPY package*.json tsconfig.json ./
+RUN npm ci
+
+# Copy source and build the application
 COPY src ./src
-RUN npm install
 RUN npm run build
 
-# Production stage
-FROM node:18-slim
+# Production stage: run the compiled application with production deps
+FROM node:18-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
-COPY package.json .
-RUN npm install --omit=dev
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy compiled output from the build stage
 COPY --from=build /app/dist ./dist
+
 EXPOSE 8080
 CMD ["node", "dist/index.js"]
