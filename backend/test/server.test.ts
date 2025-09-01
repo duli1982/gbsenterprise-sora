@@ -33,6 +33,7 @@ const modules = [
 ];
 const notifications: any[] = [];
 const preferences: Record<string, any> = {};
+const progress: any[] = [];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (db as any).collection = (name: string) => {
   if (name === 'modules') {
@@ -59,6 +60,19 @@ const preferences: Record<string, any> = {};
       }),
     };
   }
+  if (name === 'progress') {
+    return {
+      add: async (data: any) => {
+        progress.push(data);
+        return { id: String(progress.length) };
+      },
+      where: () => ({
+        get: async () => ({
+          docs: progress.map((p, idx) => ({ id: String(idx + 1), data: () => p })),
+        }),
+      }),
+    };
+  }
   if (name === 'notificationPreferences') {
     return {
       doc: (id: string) => ({
@@ -82,7 +96,7 @@ const insertedRows: any[] = [];
     },
   }),
 });
-(bigquery as any).query = async () => [[{ moduleId: '1', avgProgress: 50, totalEvents: '1' }]];
+(bigquery as any).query = async () => [[{ eventType: 'module start', moduleId: '1', total: '1' }]];
 
 // Mock Firebase messaging
 import admin from 'firebase-admin';
@@ -187,18 +201,28 @@ test('login returns url', async () => {
   assert.ok(data.url);
 });
 
-test('records progress events', async () => {
+test('ingests analytics events', async () => {
   insertedRows.length = 0;
-  const res = await makeRequest(
-    '/analytics/progress',
-    'valid-token',
-    'POST',
-    { moduleId: '1', progress: 80 }
-  );
+  const res = await makeRequest('/analytics/events', 'valid-token', 'POST', {
+    eventType: 'module start',
+    moduleId: '1',
+  });
   assert.strictEqual(res.status, 201);
   assert.strictEqual(insertedRows.length, 1);
-  assert.strictEqual(insertedRows[0].moduleId, '1');
-  assert.strictEqual(insertedRows[0].userId, 'user1');
+  assert.strictEqual(insertedRows[0].eventType, 'module start');
+});
+
+test('stores and retrieves progress', async () => {
+  progress.length = 0;
+  const res = await makeRequest('/progress/complete', 'valid-token', 'POST', {
+    moduleId: '1',
+  });
+  assert.strictEqual(res.status, 201);
+  const list = await makeRequest('/progress/user/user1', 'valid-token');
+  assert.strictEqual(list.status, 200);
+  const data = JSON.parse(list.body);
+  assert.strictEqual(data.length, 1);
+  assert.strictEqual(data[0].moduleId, '1');
 });
 
 test('returns dashboard summary', async () => {
@@ -206,7 +230,7 @@ test('returns dashboard summary', async () => {
   assert.strictEqual(res.status, 200);
   const data = JSON.parse(res.body);
   assert.ok(Array.isArray(data));
-  assert.strictEqual(data[0].moduleId, '1');
+  assert.strictEqual(data[0].eventType, 'module start');
 });
 
 test('search returns matching modules', async () => {

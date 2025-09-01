@@ -36,6 +36,18 @@ Useful endpoints:
 
 For testing, the backend accepts a fake token `valid-token` that resolves to a mock user.
 
+### Analytics & Progress Tracking
+
+The backend exposes endpoints for recording user progress and arbitrary analytics events.
+
+- `POST /progress/complete` – store a completed module in Firestore.
+- `GET /progress/user/:userId` – retrieve a user's completed modules.
+- `POST /analytics/events` – emit interaction events which are streamed into BigQuery.
+- `GET /analytics/dashboard` – returns aggregated event counts from BigQuery for reporting.
+
+Firestore is used to persist per-user progress while analytics events are inserted into the
+BigQuery dataset `analytics.events`.
+
 ## Frontend
 
 The Next.js app lives in `frontend/` and uses React Query to call the backend.
