@@ -4,12 +4,18 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/modules', authenticate, async (req: Request, res: Response) => {
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+}
+
+router.get('/modules', authenticate, async (_req: Request, res: Response) => {
   try {
     const snapshot = await db.collection('modules').get();
-    const modules = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    const modules: Module[] = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Omit<Module, 'id'>) }));
     res.json(modules);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch modules' });
   }
 });

@@ -1,23 +1,17 @@
-import admin, { ServiceAccount } from 'firebase-admin';
+import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 let db: FirebaseFirestore.Firestore;
 
 try {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? (JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) as ServiceAccount)
-    : undefined;
-
-  if (!admin.apps.length) {
-    if (serviceAccount) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-    } else {
-      admin.initializeApp();
-    }
+  const credentials = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!credentials) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is not defined');
   }
 
-  db = admin.firestore();
+  const serviceAccount = JSON.parse(credentials) as ServiceAccount;
+  const app = initializeApp({ credential: cert(serviceAccount) });
+  db = getFirestore(app);
 } catch {
   // Allow tests to mock Firestore when credentials aren't provided
   db = {} as any;
