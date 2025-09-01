@@ -11,6 +11,9 @@ indexModulesFromFirestore().catch(err => {
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const q = ((req.query.q as string) || '').trim();
+    if (!q) {
+      return res.json([]);
+    }
     const results = await searchModules(q);
     res.json(results);
   } catch (err) {
@@ -22,6 +25,9 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 router.get('/suggestions', authenticate, async (req: Request, res: Response) => {
   try {
     const q = ((req.query.q as string) || '').trim();
+    if (!q) {
+      return res.json([]);
+    }
     const suggestions = await suggestModules(q);
     res.json(suggestions);
   } catch (err) {

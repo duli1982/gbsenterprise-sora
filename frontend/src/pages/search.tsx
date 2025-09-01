@@ -9,20 +9,22 @@ export default function SearchPage() {
   useEffect(() => {
     if (!query) {
       setSuggestions([])
+      setResults([])
       return
     }
     const id = setTimeout(() => {
       fetchSuggestions(query)
         .then(setSuggestions)
         .catch(() => setSuggestions([]))
+      searchModules(query)
+        .then(setResults)
+        .catch(() => setResults([]))
     }, 300)
     return () => clearTimeout(id)
   }, [query])
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const data = await searchModules(query)
-    setResults(data)
   }
 
   return (
@@ -41,10 +43,9 @@ export default function SearchPage() {
             <li
               key={s}
               className="p-2 cursor-pointer"
-              onClick={async () => {
+              onClick={() => {
                 setQuery(s)
-                const data = await searchModules(s)
-                setResults(data)
+                setSuggestions([])
               }}
             >
               {s}
