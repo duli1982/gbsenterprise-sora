@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "npm run build && node --test -r ts-node/register",
+    "test": "jest",
     "seed:modules": "ts-node scripts/seedModules.ts"
   },
   "keywords": [],
@@ -18,12 +18,18 @@
     "firebase-admin": "^12.1.1",
     "google-auth-library": "^9.0.0",
     "@google-cloud/bigquery": "^7.7.0",
-    "@sendgrid/mail": "^8.1.1"
+    "@sendgrid/mail": "^8.1.1",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/jest": "^29.5.5",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1"
   }
 }

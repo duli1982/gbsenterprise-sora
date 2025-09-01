@@ -1,45 +1,54 @@
-import test from 'node:test';
-import assert from 'node:assert';
+import request from 'supertest';
 import { OAuth2Client } from 'google-auth-library';
-import type { Request, Response, NextFunction } from 'express';
-import { authenticate } from '../src/middleware/auth';
+import app from '../src/index';
 
-// Mock verifyIdToken
-(OAuth2Client.prototype as any).verifyIdToken = async ({ idToken }: { idToken: string }) => {
-  if (idToken === 'valid-token') {
-    return {
-      getPayload: () => ({ sub: '1', email: 'user@example.com', name: 'Test User' }),
-    } as any;
-  }
-  throw new Error('Invalid token');
-};
-
-test('authenticate passes with valid token', async () => {
-  const req = { headers: { authorization: 'Bearer valid-token' } } as unknown as Request;
-  const res = {} as Response;
-  let called = false;
-  await authenticate(req, res, () => { called = true; });
-  assert.ok(called);
-  assert.strictEqual(req.user?.email, 'user@example.com');
+beforeAll(() => {
+  process.env.JWT_SECRET = 'test-secret';
+  process.env.GOOGLE_CLIENT_ID = 'client-id';
+  process.env.GOOGLE_CLIENT_SECRET = 'client-secret';
+  process.env.GOOGLE_REDIRECT_URI = 'http://localhost/auth/callback';
 });
 
-test('authenticate rejects invalid token', async () => {
-  const req = { headers: { authorization: 'Bearer bad-token' } } as unknown as Request;
-  let status = 0;
-  let body: any;
-  const res = {
-    status(code: number) {
-      status = code;
-      return this;
-    },
-    json(data: any) {
-      body = data;
-      return this;
-    },
-  } as unknown as Response;
-  let nextCalled = false;
-  await authenticate(req, res, () => { nextCalled = true; });
-  assert.strictEqual(status, 401);
-  assert.strictEqual(nextCalled, false);
-  assert.deepStrictEqual(body, { message: 'Invalid token' });
+describe('Auth flow', () => {
+  let refreshToken: string;
+  let accessToken: string;
+
+  it('returns Google auth URL', async () => {
+    const res = await request(app).post('/auth/login').send();
+    expect(res.status).toBe(200);
+    expect(typeof res.body.url).toBe('string');
+  });
+
+  it('exchanges code and returns tokens', async () => {
+    (OAuth2Client.prototype as any).getToken = async () => ({ tokens: { id_token: 'dev-token' } });
+    (OAuth2Client.prototype as any).verifyIdToken = async () => ({
+      getPayload: () => ({
+        sub: '1',
+        email: 'user@example.com',
+        name: 'Test User',
+      }),
+    });
+    const res = await request(app).post('/auth/callback').send({ code: 'test-code' });
+    expect(res.status).toBe(200);
+    expect(typeof res.body.accessToken).toBe('string');
+    expect(typeof res.body.refreshToken).toBe('string');
+    refreshToken = res.body.refreshToken;
+    accessToken = res.body.accessToken;
+  });
+
+  it('refreshes access token', async () => {
+    const res = await request(app).post('/auth/refresh').send({ refreshToken });
+    expect(res.status).toBe(200);
+    expect(typeof res.body.accessToken).toBe('string');
+    accessToken = res.body.accessToken;
+  });
+
+  it('requires auth for profile', async () => {
+    const unauth = await request(app).get('/auth/profile');
+    expect(unauth.status).toBe(401);
+
+    const auth = await request(app).get('/auth/profile').set('Authorization', `Bearer ${accessToken}`);
+    expect(auth.status).toBe(200);
+    expect(auth.body.email).toBe('user@example.com');
+  });
 });

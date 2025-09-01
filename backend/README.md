@@ -9,6 +9,7 @@ Set these variables in your environment or a `.env` file:
 - `PORT` – server port (default `3001`).
 - `FIREBASE_SERVICE_ACCOUNT` – JSON-encoded service account used to initialize `firebase-admin`.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` – Google OAuth credentials.
+- `JWT_SECRET` – secret used to sign JWT access and refresh tokens.
 - `FIRESTORE_EMULATOR_HOST` – optional host for the Firestore emulator.
 
 Example:
@@ -23,13 +24,23 @@ GOOGLE_REDIRECT_URI=http://localhost:3001/auth/callback
 
 ## Authentication
 
-All protected routes expect an `Authorization` header with a Google ID token.
-For local development you can bypass the Google flow by sending the literal
-string `dev-token` as the bearer token:
+The backend uses Google OAuth for sign-in and issues its own JWT access and
+refresh tokens.
+
+1. `POST /auth/login` returns a Google OAuth URL for the client to redirect to.
+2. After Google redirects back to your app, send the authorization `code` to
+   `POST /auth/callback` to exchange it for signed `accessToken` and
+   `refreshToken` values.
+3. Include the access token in the `Authorization` header to access protected
+   routes:
 
 ```
-Authorization: Bearer dev-token
+Authorization: Bearer <accessToken>
 ```
+
+4. When the access token expires, call `POST /auth/refresh` with the refresh
+   token to obtain a new access token.
+5. Call `POST /auth/logout` with the refresh token to invalidate it.
 
 ## Development
 
