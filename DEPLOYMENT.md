@@ -14,6 +14,8 @@ When configuring the Cloud Build trigger, supply the following variables. They a
 - `GOOGLE_REDIRECT_URI`: Redirect URI configured for the OAuth client.
 - `FIREBASE_SERVICE_ACCOUNT`: JSON service account credentials for Firestore.
 
+You can store these values as **Cloud Build variables** or use [Secret Manager](https://cloud.google.com/secret-manager) and reference the secrets in the trigger configuration.
+
 ## Rollout Process
 
 1. Push changes to the `main` branch.
@@ -40,5 +42,17 @@ Create a trigger in the Google Cloud console so that pushes to the `main` branch
 2. Choose this repository and set the event to **Push to a branch** with the branch pattern `main`.
 3. Use `cloudbuild.yaml` as the build configuration file.
 4. Supply the substitutions and environment variables listed above.
+
+Alternatively, create the trigger with the `gcloud` CLI:
+
+```bash
+gcloud beta builds triggers create github \
+  --name=backend-deploy \
+  --repo-name=gbsenterprise-sora \
+  --repo-owner=YOUR_GITHUB_ACCOUNT \
+  --branch-pattern="^main$" \
+  --build-config=cloudbuild.yaml \
+  --substitutions=_SERVICE_NAME=learning-hub,_REGION=us-central1
+```
 
 See the [Cloud Build trigger documentation](https://cloud.google.com/build/docs/automate-builds/github/create-github-app-triggers) for more details.

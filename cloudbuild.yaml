@@ -1,15 +1,27 @@
 steps:
-  - name: gcr.io/cloud-builders/npm
+  # Install backend dependencies
+  - id: install
+    name: gcr.io/cloud-builders/npm
     dir: backend
     args: ['ci']
-  - name: gcr.io/cloud-builders/npm
+
+  # Run the backend unit tests
+  - id: test
+    name: gcr.io/cloud-builders/npm
     dir: backend
-    args: ['test']
-  - name: gcr.io/cloud-builders/docker
+    args: ['test', '--', '--runInBand']
+
+  # Build and push the production container image
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
     args: ['build','-t','gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA','backend']
-  - name: gcr.io/cloud-builders/docker
+  - id: push-image
+    name: gcr.io/cloud-builders/docker
     args: ['push','gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA']
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+
+  # Deploy the image to Cloud Run
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
     args:
       - run
@@ -28,8 +40,12 @@ steps:
         GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET,
         GOOGLE_REDIRECT_URI=$GOOGLE_REDIRECT_URI,
         FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT
+
 images:
   - gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA
+
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: learning-hub
+
+timeout: '1200s'
