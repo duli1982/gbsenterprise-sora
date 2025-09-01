@@ -1,0 +1,14 @@
+# Cloud Build trigger configuration for main branch
+apiVersion: cloudbuild.googleapis.com/v1
+kind: BuildTrigger
+metadata:
+  name: learning-hub-main
+spec:
+  description: Build and deploy backend when commits are pushed to main
+  triggerTemplate:
+    branchName: main
+    repoName: gbsenterprise-sora
+  filename: cloudbuild.yaml
+  substitutions:
+    _SERVICE_NAME: learning-hub
+    _REGION: us-central1
