@@ -48,7 +48,12 @@ router.post('/send', authenticate, authorize('admin'), async (req: Request, res:
     const docRef = await db.collection('notifications').add(notif);
     const prefDoc = await db.collection('notificationPreferences').doc(userId).get();
     const prefs: NotificationPreferences = prefDoc.exists ? (prefDoc.data() as any) : {};
-    if (prefs.email !== false && process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    if (
+      prefs.email !== false &&
+      prefs.emailAddress &&
+      process.env.SENDGRID_API_KEY &&
+      process.env.SENDGRID_FROM_EMAIL
+    ) {
       const sgMail = getSendgrid();
       try {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -79,8 +84,11 @@ router.post('/send', authenticate, authorize('admin'), async (req: Request, res:
 });
 
 router.get('/preferences', authenticate, async (req: Request, res: Response) => {
-  const prefDoc = await db.collection('notificationPreferences').doc(req.user!.id).get();
-  res.json(prefDoc.exists ? prefDoc.data() : {});
+  const prefDoc = await db
+    .collection('notificationPreferences')
+    .doc(req.user!.id)
+    .get();
+  res.json(prefDoc.exists ? (prefDoc.data() as NotificationPreferences) : {});
 });
 
 router.put('/preferences', authenticate, async (req: Request, res: Response) => {
