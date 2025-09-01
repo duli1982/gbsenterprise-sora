@@ -11,6 +11,7 @@ Set these variables in your environment or a `.env` file:
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` – Google OAuth credentials.
 - `JWT_SECRET` – secret used to sign JWT access and refresh tokens.
 - `FIRESTORE_EMULATOR_HOST` – optional host for the Firestore emulator.
+- BigQuery uses application default credentials. Set `GOOGLE_APPLICATION_CREDENTIALS` to a service account JSON key if needed.
 
 Example:
 
@@ -62,3 +63,22 @@ npm test
 ```
 
 Tests mock Firestore so no external services are needed.
+
+## Analytics
+
+Training progress is persisted to Firestore and richer analytics events are
+streamed to BigQuery.
+
+Routes:
+
+- `POST /progress/complete` – mark a module completed for the authenticated user.
+- `GET /progress/user/:userId` – return progress for a given user.
+- `POST /analytics/events` – ingest a custom event which is inserted into the
+  BigQuery dataset `analytics` table `events`.
+- `GET /analytics/dashboard` – aggregate events by type and module from
+  BigQuery.
+
+Create the dataset and table in BigQuery ahead of time with a schema matching
+the fields above. For local development provide credentials via the
+`GOOGLE_APPLICATION_CREDENTIALS` environment variable or another method supported
+by the Google Cloud SDK.

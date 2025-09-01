@@ -5,6 +5,9 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
+const ANALYTICS_DATASET = 'analytics';
+const EVENTS_TABLE = 'events';
+
 // Store a completed module in Firestore
 router.post('/progress/complete', authenticate, async (req: Request, res: Response) => {
   const { moduleId } = req.body as { moduleId?: string };
@@ -19,7 +22,8 @@ router.post('/progress/complete', authenticate, async (req: Request, res: Respon
       completedAt: new Date().toISOString(),
     });
     res.status(201).json({ status: 'ok' });
-  } catch {
+  } catch (err) {
+    console.error('Failed to store progress', err);
     res.status(500).json({ error: 'Failed to store progress' });
   }
 });
@@ -33,7 +37,8 @@ router.get('/progress/user/:userId', authenticate, async (req: Request, res: Res
       .get();
     const progress = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Record<string, unknown>) }));
     res.json(progress);
-  } catch {
+  } catch (err) {
+    console.error('Failed to fetch progress', err);
     res.status(500).json({ error: 'Failed to fetch progress' });
   }
 });
@@ -60,9 +65,10 @@ router.post('/analytics/events', authenticate, async (req: Request, res: Respons
         timestamp: new Date().toISOString(),
       },
     ];
-    await bigquery.dataset('analytics').table('events').insert(rows);
+    await bigquery.dataset(ANALYTICS_DATASET).table(EVENTS_TABLE).insert(rows);
     res.status(201).json({ status: 'ok' });
-  } catch {
+  } catch (err) {
+    console.error('Failed to store event', err);
     res.status(500).json({ error: 'Failed to store event' });
   }
 });
@@ -72,12 +78,13 @@ router.get('/analytics/dashboard', authenticate, async (_req: Request, res: Resp
   try {
     const query = `
       SELECT eventType, moduleId, COUNT(*) as total
-      FROM \`analytics.events\`
+      FROM \`${ANALYTICS_DATASET}.${EVENTS_TABLE}\`
       GROUP BY eventType, moduleId
     `;
     const [rows] = await bigquery.query({ query, useLegacySql: false });
     res.json(rows);
-  } catch {
+  } catch (err) {
+    console.error('Failed to fetch dashboard', err);
     res.status(500).json({ error: 'Failed to fetch dashboard' });
   }
 });
