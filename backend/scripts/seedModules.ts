@@ -1,6 +1,11 @@
 import db from '../src/db/firestore';
 
-const modules = [
+interface Module {
+  title: string;
+  description: string;
+}
+
+const modules: Module[] = [
   { title: 'Intro to GBS', description: 'Welcome module' },
   { title: 'Advanced Processes', description: 'Deep dive' },
 ];
@@ -15,7 +20,9 @@ async function seed() {
   console.log('Seeded modules');
 }
 
-seed().then(() => process.exit(0)).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+seed()
+  .then(() => process.exit(0))
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
