@@ -1,3 +1,4 @@
+# Multi-stage Dockerfile for building and running the backend on Cloud Run
 # Build stage: install dependencies and compile TypeScript
 FROM node:18 AS build
 WORKDIR /app
