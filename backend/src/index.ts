@@ -10,7 +10,7 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/content', contentRouter);
-app.use('/analytics', analyticsRouter);
+app.use(analyticsRouter);
 app.use('/search', searchRouter);
 app.use('/notifications', notificationsRouter);
 

@@ -43,3 +43,35 @@ export async function fetchSuggestions(query: string): Promise<string[]> {
   }
   return res.json()
 }
+
+export async function trackEvent(
+  eventType: string,
+  moduleId?: string,
+  metadata?: Record<string, unknown>
+) {
+  const res = await fetch(`${API_BASE_URL}/analytics/events`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(DEV_TOKEN ? { Authorization: `Bearer ${DEV_TOKEN}` } : {}),
+    },
+    body: JSON.stringify({ eventType, moduleId, metadata }),
+  })
+  if (!res.ok) {
+    throw new Error('Failed to track event')
+  }
+}
+
+export async function completeModule(moduleId: string) {
+  const res = await fetch(`${API_BASE_URL}/progress/complete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(DEV_TOKEN ? { Authorization: `Bearer ${DEV_TOKEN}` } : {}),
+    },
+    body: JSON.stringify({ moduleId }),
+  })
+  if (!res.ok) {
+    throw new Error('Failed to complete module')
+  }
+}
