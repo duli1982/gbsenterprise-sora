@@ -18,12 +18,13 @@ Located in `backend/` and built with TypeScript. It exposes authentication and c
    - `GOOGLE_CLIENT_SECRET` – OAuth client secret for login flows.
    - `GOOGLE_REDIRECT_URI` – Redirect URI configured in Google Cloud Console.
    - `FIREBASE_SERVICE_ACCOUNT` – JSON service account credentials for Firestore.
-   Create a `.env` file using [`backend/.env.example`](backend/.env.example) as a template.
+   Create a `.env` file using [`.env.example`](./.env.example) as a template.
 3. Run the development server:
    ```bash
    npm run build
    npm start
    ```
+4. API documentation is available at `http://localhost:3001/docs`.
 
 ### Authentication
 
@@ -59,9 +60,10 @@ The Next.js app lives in `frontend/` and uses React Query to call the backend.
    cd frontend
    npm install
    ```
-2. Create `.env.local` with the backend URL:
+2. Create `.env.local` with the backend URL and Google client ID:
    ```bash
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+   NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
    ```
 3. Start the dev server:
    ```bash
@@ -69,6 +71,12 @@ The Next.js app lives in `frontend/` and uses React Query to call the backend.
    ```
 
 Visit `http://localhost:3000/modules` to see module data.
+
+To run backend tests with mocked Firestore and Google auth, execute:
+```bash
+cd backend
+npm test
+```
 
 ## Deployment
 
