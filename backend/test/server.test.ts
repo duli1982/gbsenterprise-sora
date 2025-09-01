@@ -3,13 +3,24 @@ import assert from 'node:assert';
 import http from 'node:http';
 
 // Mock Google token verification
-import * as googleAuth from '../src/auth/google';
-(googleAuth as any).verifyIdToken = async (token: string) => {
-  if (token === 'valid-token') {
-    return { sub: 'user1', email: 'user@example.com', name: 'Test User' } as any;
+import { OAuth2Client } from 'google-auth-library';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(OAuth2Client.prototype as any).verifyIdToken = async ({ idToken }: { idToken: string }) => {
+  if (idToken === 'valid-token') {
+    return {
+      getPayload: () => ({ sub: 'user1', email: 'user@example.com', name: 'Test User' }),
+    } as any;
   }
-  if (token === 'admin-token') {
-    return { sub: 'admin1', email: 'admin@example.com', name: 'Admin User', role: 'admin' } as any;
+  if (idToken === 'admin-token') {
+    return {
+      getPayload: () => ({
+        sub: 'admin1',
+        email: 'admin@example.com',
+        name: 'Admin User',
+        role: 'admin',
+      }),
+    } as any;
   }
   throw new Error('Invalid token');
 };
