@@ -11,17 +11,19 @@ steps:
     dir: backend
     args: ['test', '--', '--runInBand']
 
-  # Build and push the production container image
+  # Build the multi-stage container image
   - id: build-image
     name: gcr.io/cloud-builders/docker
-    args: ['build','-t','gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA','backend']
+    args: ['build','-f','backend/Dockerfile','-t','gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA','backend']
+
+  # Push the image to Container Registry
   - id: push-image
     name: gcr.io/cloud-builders/docker
     args: ['push','gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA']
 
   # Deploy the image to Cloud Run
   - id: deploy
-    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     entrypoint: gcloud
     args:
       - run
