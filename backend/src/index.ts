@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import openapi from './openapi.json';
 import authRouter from './routes/auth';
 import contentRouter from './routes/content';
 import analyticsRouter from './routes/analytics';
@@ -7,6 +8,10 @@ import notificationsRouter from './routes/notifications';
 
 const app = express();
 app.use(express.json());
+
+app.get('/docs', (_req: Request, res: Response) => {
+  res.json(openapi);
+});
 
 app.use('/auth', authRouter);
 app.use('/content', contentRouter);
